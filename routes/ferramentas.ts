@@ -20,6 +20,7 @@ router.get("/", async (req, res) => {
 
 router.post("/", async (req, res) => {
   const { modelo, ano, preco, tipo, foto, acessorios, fabricanteId, quantidadeEstoque } = req.body;
+console.log(req.body);
 
   // Verifica se os campos obrigatórios estão presentes (incluindo validação para quantidadeEstoque)
   if (!modelo || !ano || !preco || !tipo || !foto || !fabricanteId || quantidadeEstoque === undefined || quantidadeEstoque === null) {

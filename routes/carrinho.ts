@@ -65,7 +65,7 @@ router.get("/:clienteId/:ferramentaId", async (req, res) => {
 });
 
 router.post("/", async (req, res) => {
-  const {nome,  quantidade, precoUnitario, clienteId, ferramentaId } = req.body;
+  const {nome, quantidade, precoUnitario, clienteId, ferramentaId } = req.body;
 
   if (!nome || !quantidade || !precoUnitario || !clienteId || !ferramentaId) {
     console.warn(`[POST /] Dados ausentes: quantidade, precoUnitario, clienteId, ferramentaId são obrigatórios`);

@@ -14,6 +14,32 @@ const mailjet2 = mailjet.apiConnect(process.env.KEY_API!, process.env.SECRET_KEY
 
 const prisma = new PrismaClient()
 const router = Router()
+router.get("/:clienteId", async (req, res) => {
+    const { clienteId } = req.params;  // Pega o clienteId da URL
+
+    try {
+        const pedidos = await prisma.pedido.findMany({
+            where: {
+                clienteId: String(clienteId)  // Filtra os pedidos pelo clienteId
+            },
+            include: {
+                itens: {
+                    include: {
+                        ferramenta: true,
+                    },
+                },
+                cliente: true,
+            },
+            orderBy: { id: 'desc' },
+        });
+
+        res.status(200).json(pedidos);
+    } catch (error) {
+        console.error("Erro ao buscar pedidos:", error);
+        res.status(400).json({ message: "Erro ao carregar pedidos", error });
+    }
+});
+
 
 router.get("/", async (req, res) => {
     try {
