@@ -1,0 +1,170 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Fabricante {
+  id          Int          @id @default(autoincrement())
+  nome        String       @db.VarChar(30)
+  ferramentas Ferramenta[]
+
+  @@map("fabricantes")
+}
+
+model Ferramenta {
+  id                Int     @id @default(autoincrement())
+  modelo            String  @db.VarChar(60)
+  ano               Int     @db.SmallInt
+  preco             Decimal @db.Decimal(10, 2)
+  destaque          Boolean @default(true)
+  foto              String
+  quantidadeEstoque Int     
+
+  acessorios   String? // Pode ser uma string com uma descrição dos acessórios disponíveis
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  tipo         Voltage     @default(BIVOLT)
+  fabricante   Fabricante  @relation(fields: [fabricanteId], references: [id])
+  fabricanteId Int
+  fotos        Foto[]
+  Avaliacao    Avaliacao[]
+  Favorito     Favorito[]
+
+  admin      Admin        @relation(fields: [adminId], references: [id])
+  adminId    Int          @default(1)
+  Carrinho   Carrinho[]
+  Pedidos    Pedido[]
+  PedidoItem ItemPedido[]
+
+  @@map("ferramentas")
+}
+
+model Avaliacao {
+  id             Int        @id @default(autoincrement())
+  totalAvaliacao Int
+  estrelas       Int        @default(0)
+  comentario     String?    @db.VarChar(255)
+  ferramenta     Ferramenta @relation(fields: [ferramentaId], references: [id])
+  ferramentaId   Int
+  cliente        Cliente    @relation(fields: [clienteId], references: [id])
+  clienteId      String     @db.VarChar(36)
+
+  @@map("avaliacoes")
+}
+
+model Favorito {
+  id           Int        @id @default(autoincrement())
+  cliente      Cliente    @relation(fields: [clienteId], references: [id])
+  clienteId    String     @db.VarChar(36)
+  ferramenta   Ferramenta @relation(fields: [ferramentaId], references: [id])
+  ferramentaId Int
+
+  @@map("favoritos")
+}
+
+model Foto {
+  id           Int        @id @default(autoincrement())
+  descricao    String     @db.VarChar(30)
+  codigoFoto   String     @db.Text
+  ferramenta   Ferramenta @relation(fields: [ferramentaId], references: [id])
+  ferramentaId Int
+
+  @@map("fotos")
+}
+
+model Cliente {
+  id        String   @id @default(uuid()) @db.VarChar(36)
+  nome      String   @db.VarChar(60)
+  email     String   @unique @db.VarChar(60)
+  senha     String   @db.VarChar(60)
+  novaSenha String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  Avaliacao Avaliacao[]
+  Favorito  Favorito[]
+
+  Compra  Carrinho[]
+  Pedidos Pedido[]
+
+  @@map("clientes")
+}
+
+model Pedido {
+  id           Int          @id @default(autoincrement())
+  quantidade   Int
+  valorTotal   Decimal      @db.Decimal(10, 3)
+  descricao    String       @db.VarChar(255)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  status       StatusOrdem  @default(EM_PROCESSAMENTO)
+  cliente      Cliente      @relation(fields: [clienteId], references: [id])
+  clienteId    String
+  Ferramenta   Ferramenta?  @relation(fields: [ferramentaId], references: [id])
+  ferramentaId Int?
+  itens        ItemPedido[]
+
+  @@map("pedidos")
+}
+
+model ItemPedido {
+  id            Int        @id @default(autoincrement())
+  quantidade    Int
+  precoUnitario Decimal
+  nome          String
+  ferramentaId  Int
+  pedidoId      Int
+  ferramenta    Ferramenta @relation(fields: [ferramentaId], references: [id])
+  pedido        Pedido     @relation(fields: [pedidoId], references: [id])
+}
+
+model Carrinho {
+  id            Int        @id @default(autoincrement())
+  nome          String     @db.VarChar(60)
+  quantidade    Int
+  precoUnitario Decimal    @db.Decimal(10, 3)
+  cliente       Cliente    @relation(fields: [clienteId], references: [id])
+  clienteId     String     @db.VarChar(36)
+  ferramenta    Ferramenta @relation(fields: [ferramentaId], references: [id])
+  ferramentaId  Int
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  @@map("carrinho")
+}
+
+model Admin {
+  id         Int          @id @default(autoincrement())
+  nome       String       @db.VarChar(60)
+  email      String       @unique @db.VarChar(60)
+  senha      String       @db.VarChar(60)
+  createAt   DateTime     @default(now())
+  updateAt   DateTime     @updatedAt
+  ferramenta Ferramenta[]
+
+  @@map("admins")
+}
+
+enum Voltage {
+  BIVOLT
+  VOLT_220
+  VOLT_110
+}
+
+enum StatusOrdem {
+  EM_PROCESSAMENTO
+  ENVIADO
+  EM_TRANSITO
+  CONCLUIDA
+  CANCELADA
+}
